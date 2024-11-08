@@ -1,0 +1,73 @@
+/* Extract only the relevant styles for surgery scheduling from the original styles.css */
+[Relevant styles from the original styles.css] 
+
+@media print {
+    /* Hide all elements by default */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Only show the surgery table and its contents */
+    .surgery-table, .surgery-table * {
+        visibility: visible;
+    }
+    
+    /* Show the title */
+    .title, .title * {
+        visibility: visible;
+    }
+    
+    /* Hide specific elements */
+    .header,
+    .department-selection,
+    .date-navigation,
+    .button-group,
+    .modal,
+    .no-print,
+    button {
+        display: none !important;
+    }
+    
+    /* Reset container styles for printing */
+    .container {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        width: 100%;
+        max-width: none;
+    }
+    
+    /* Adjust table for printing */
+    .surgery-table {
+        width: 100%;
+        margin: 0;
+        page-break-inside: auto;
+    }
+    
+    .surgery-table th {
+        background-color: #f5f5f5 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .surgery-table tr {
+        page-break-inside: avoid;
+    }
+    
+    /* Adjust font sizes for printing */
+    .title {
+        font-size: 18pt;
+        margin: 20px 0;
+    }
+    
+    .surgery-table th,
+    .surgery-table td {
+        font-size: 10pt;
+        padding: 4px;
+    }
+    
+    /* Remove background color */
+    body {
+        background: none;
+    }
+}

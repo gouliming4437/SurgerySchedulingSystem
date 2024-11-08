@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>手术排台系统</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .surgery-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .surgery-table th, .surgery-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .surgery-table th {
+            background-color: #f5f5f5;
+        }
+        .button-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4a90e2;
+            color: white;
+        }
+        .button:hover {
+            background-color: #357abd;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .form-group label {
+            width: 120px;
+            text-align: right;
+            margin-right: 15px;
+        }
+        .form-group input, .form-group select {
+            width: 250px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            .surgery-table {
+                font-size: 12pt;
+            }
+        }
+
+        @media print {
+    @page {
+        size: landscape;  /* Force landscape orientation */
+        margin: 1cm;     /* Set reasonable margins */
+    }
+
+    /* Hide all elements by default */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Position the table for printing */
+    .surgery-table {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        visibility: visible;
+    }
+    
+    /* Make all table elements visible */
+    .surgery-table * {
+        visibility: visible;
+    }
+    
+    /* Show and position the title */
+    .title {
+        position: relative;
+        visibility: visible;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 16pt;
+    }
+    
+    /* Optimize table layout */
+    .surgery-table th,
+    .surgery-table td {
+        padding: 4px;
+        font-size: 9pt;  /* Slightly smaller font to fit better */
+        white-space: nowrap;  /* Prevent text wrapping */
+    }
+
+    /* Adjust column widths */
+    .surgery-table th:nth-child(1),  /* 床号 */
+    .surgery-table td:nth-child(1) {
+        width: 5%;
+    }
+    
+    .surgery-table th:nth-child(2),  /* 姓名 */
+    .surgery-table td:nth-child(2) {
+        width: 8%;
+    }
+    
+    .surgery-table th:nth-child(3),  /* 性别 */
+    .surgery-table td:nth-child(3) {
+        width: 4%;
+    }
+    
+    .surgery-table th:nth-child(4),  /* 年龄 */
+    .surgery-table td:nth-child(4) {
+        width: 4%;
+    }
+    
+    .surgery-table th:nth-child(5),  /* 住院号 */
+    .surgery-table td:nth-child(5) {
+        width: 8%;
+    }
+    
+    .surgery-table th:nth-child(6),  /* 临床诊断 */
+    .surgery-table td:nth-child(6) {
+        width: 15%;
+    }
+    
+    .surgery-table th:nth-child(7),  /* 术式 */
+    .surgery-table td:nth-child(7) {
+        width: 15%;
+    }
+    
+    /* Hide the operations column */
+    .surgery-table th:last-child,
+    .surgery-table td:last-child {
+        display: none;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>手术排台系统</h1>
+            <button class="button" onclick="logout()">退出登录</button>
+        </div>
+
+        <div class="department-selection" id="departmentSelection">
+            <h2>请选择病区</h2>
+            <div class="button-group">
+                <button class="button" onclick="selectDepartment('一病区')">一病区</button>
+                <button class="button" onclick="selectDepartment('二病区')">二病区</button>
+            </div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <div class="date-navigation">
+                <button onclick="changeDate('prev')">&lt; 前一天</button>
+                <input type="date" id="dateSelector" onchange="selectDate(this.value)">
+                <button onclick="changeDate('next')">后一天 &gt;</button>
+            </div>
+
+            <div class="button-group">
+                <button class="button" onclick="showAddSurgery()">排手术</button>
+                <button class="button" onclick="showHistoryModal()">历史记录</button>
+                <button class="button" onclick="exportData()">导出数据</button>
+                <button class="button" onclick="window.print()">打印</button>
+            </div>
+
+            <div class="title">
+                手术安排表 <span id="scheduleDate"></span>
+            </div>
+
+            <table class="surgery-table">
+                <thead>
+                    <tr>
+                        <th>床号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>住院号</th>
+                        <th>临床诊断</th>
+                        <th>术式</th>
+                        <th>主刀</th>
+                        <th>助手</th>
+                        <th>管床医师</th>
+                        <th>麻醉</th>
+                        <th>术前准备</th>
+                        <th>台次</th>
+                        <th class="no-print">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="surgeryTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add/Edit Surgery Modal -->
+        <div id="surgeryModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeSurgeryModal()">&times;</span>
+                <h3 id="modalTitle">添加手术安排</h3>
+                <form id="surgeryForm">
+                    <div class="form-group">
+                        <label>日期：</label>
+                        <input type="date" id="surgeryDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>床号：</label>
+                        <input type="text" id="bedNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>姓名：</label>
+                        <input type="text" id="patientName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>性别：</label>
+                        <select id="gender" required>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>年龄：</label>
+                        <input type="number" id="age" required>
+                    </div>
+                    <div class="form-group">
+                        <label>住院号：</label>
+                        <input type="text" id="hospitalNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label>临床诊断：</label>
+                        <input type="text" id="diagnosis" required>
+                    </div>
+                    <div class="form-group">
+                        <label>术式：</label>
+                        <input type="text" id="operation" required>
+                    </div>
+                    <div class="form-group">
+                        <label>主刀：</label>
+                        <input type="text" id="mainSurgeon" required>
+                    </div>
+                    <div class="form-group">
+                        <label>助手：</label>
+                        <input type="text" id="assistant" required>
+                    </div>
+                    <div class="form-group">
+                        <label>管床医师：</label>
+                        <input type="text" id="wardDoctor" required>
+                    </div>
+                    <div class="form-group">
+                        <label>麻醉：</label>
+                        <select id="anesthesia" required>
+                            <option value="全麻">全麻</option>
+                            <option value="局麻">局麻</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>术前准备：</label>
+                        <select id="preOpPrep">
+                            <option value="无">无</option>
+                            <option value="有">有</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>台次：</label>
+                        <input type="number" id="operationOrder" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="button">保存</button>
+                        <button type="button" class="button" onclick="closeSurgeryModal()">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div id="historyModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeHistoryModal()">&times;</span>
+                <h3>历史记录查询</h3>
+                <div class="form-group">
+                    <label>开始日期：</label>
+                    <input type="date" id="historyStartDate">
+                </div>
+                <div class="form-group">
+                    <label>结束日期：</label>
+                    <input type="date" id="historyEndDate">
+                </div>
+                <button class="button" onclick="searchHistory()">查询</button>
+                <div id="historyResults" style="margin-top: 20px; max-height: 500px; overflow-y: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let currentDepartment = null;
+        let editingId = null;
+
+        // Initialize the page
+        window.onload = function() {
+            if (!localStorage.getItem('surgery_auth')) {
+                window.location.href = '/';
+                return;
+            }
+            document.getElementById('dateSelector').value = currentDate.toISOString().split('T')[0];
+            document.getElementById('scheduleDate').textContent = currentDate.toISOString().split('T')[0];
+        };
+
+        function selectDepartment(department) {
+            currentDepartment = department;
+            document.getElementById('departmentSelection').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadSurgeries();
+        }
+
+        function loadSurgeries() {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            document.getElementById('scheduleDate').textContent = dateStr;
+            
+            fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent(currentDepartment)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySurgeries(data.surgeries);
+                    } else {
+                        alert(data.message || '获取手术安排失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('获取手术安排失败');
+                });
+        }
+
+        function displaySurgeries(surgeries) {
+            const tbody = document.getElementById('surgeryTableBody');
+            tbody.innerHTML = '';
+            
+            surgeries.forEach(surgery => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${surgery.BedNumber}</td>
+                    <td>${surgery.PatientName}</td>
+                    <td>${surgery.Gender}</td>
+                    <td>${surgery.Age}</td>
+                    <td>${surgery.HospitalNumber}</td>
+                    <td>${surgery.Diagnosis}</td>
+                    <td>${surgery.Operation}</td>
+                    <td>${surgery.MainSurgeon}</td>
+                    <td>${surgery.Assistant}</td>
+                    <td>${surgery.AnesthesiaDoctor}</td>
+                    <td>${surgery.AnesthesiaType}</td>
+                    <td>${surgery.PreOpPrep || '无'}</td>
+                    <td>${surgery.OperationOrder}</td>
+                    <td class="no-print">
+                        <button class="button" onclick="editSurgery(${surgery.ID})">编辑</button>
+                        <button class="button" onclick="deleteSurgery(${surgery.ID})">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Add these functions after the existing JavaScript code in surgery_schedule.html
+
+function changeDate(direction) {
+    if (direction === 'prev') {
+        currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    document.getElementById('dateSelector').value = currentDate.toISOString().split('T')[0];
+    loadSurgeries();
+}
+
+function selectDate(date) {
+    currentDate = new Date(date);
+    loadSurgeries();
+}
+
+function showAddSurgery() {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = '添加手术安排';
+    document.getElementById('surgeryForm').reset();
+    document.getElementById('surgeryDate').value = currentDate.toISOString().split('T')[0];
+    document.getElementById('surgeryModal').style.display = 'block';
+}
+
+function closeSurgeryModal() {
+    document.getElementById('surgeryModal').style.display = 'none';
+    document.getElementById('surgeryForm').reset();
+}
+
+function editSurgery(id) {
+    editingId = id;
+    document.getElementById('modalTitle').textContent = '编辑手术安排';
+    
+    const dateStr = currentDate.toISOString().split('T')[0];
+    fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent(currentDepartment)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const surgery = data.surgeries.find(s => s.ID === id);
+                if (surgery) {
+                    document.getElementById('surgeryDate').value = surgery.Date;
+                    document.getElementById('bedNumber').value = surgery.BedNumber;
+                    document.getElementById('patientName').value = surgery.PatientName;
+                    document.getElementById('gender').value = surgery.Gender;
+                    document.getElementById('age').value = surgery.Age;
+                    document.getElementById('hospitalNumber').value = surgery.HospitalNumber;
+                    document.getElementById('diagnosis').value = surgery.Diagnosis;
+                    document.getElementById('operation').value = surgery.Operation;
+                    document.getElementById('mainSurgeon').value = surgery.MainSurgeon;
+                    document.getElementById('assistant').value = surgery.Assistant;
+                    document.getElementById('wardDoctor').value = surgery.AnesthesiaDoctor;
+                    document.getElementById('anesthesia').value = surgery.AnesthesiaType;
+                    document.getElementById('preOpPrep').value = surgery.PreOpPrep || '无';
+                    document.getElementById('operationOrder').value = surgery.OperationOrder;
+                    document.getElementById('surgeryModal').style.display = 'block';
+                }
+            }
+        });
+}
+
+function deleteSurgery(id) {
+    if (confirm('确定要删除这条手术安排吗？')) {
+        fetch('/api/surgery/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('手术安排已删除');
+                loadSurgeries();
+            } else {
+                alert(data.message || '删除失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败');
+        });
+    }
+}
+
+// Add form submit handler
+document.getElementById('surgeryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        Department: currentDepartment,
+        Date: document.getElementById('surgeryDate').value,
+        BedNumber: document.getElementById('bedNumber').value,
+        PatientName: document.getElementById('patientName').value,
+        Gender: document.getElementById('gender').value,
+        Age: document.getElementById('age').value,
+        HospitalNumber: document.getElementById('hospitalNumber').value,
+        Diagnosis: document.getElementById('diagnosis').value,
+        Operation: document.getElementById('operation').value,
+        MainSurgeon: document.getElementById('mainSurgeon').value,
+        Assistant: document.getElementById('assistant').value,
+        AnesthesiaDoctor: document.getElementById('wardDoctor').value,
+        AnesthesiaType: document.getElementById('anesthesia').value,
+        PreOpPrep: document.getElementById('preOpPrep').value,
+        OperationOrder: document.getElementById('operationOrder').value,
+        Creator: '系统用户'
+    };
+
+    if (editingId) {
+        formData.ID = editingId;
+    }
+
+    const url = editingId ? '/api/surgery/edit' : '/api/surgery/add';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(editingId ? '手术安排已更新' : '手术安排已添加');
+            closeSurgeryModal();
+            loadSurgeries();
+        } else {
+            alert(data.message || '操作失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败');
+    });
+});
+
+function showHistoryModal() {
+    document.getElementById('historyModal').style.display = 'block';
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    document.getElementById('historyStartDate').value = start.toISOString().split('T')[0];
+    document.getElementById('historyEndDate').value = end.toISOString().split('T')[0];
+}
+
+function closeHistoryModal() {
+    document.getElementById('historyModal').style.display = 'none';
+}
+
+function searchHistory() {
+    const startDate = document.getElementById('historyStartDate').value;
+    const endDate = document.getElementById('historyEndDate').value;
+    
+    if (!startDate || !endDate) {
+        alert('请选择开始和结束日期');
+        return;
+    }
+    
+    fetch(`/api/surgeries/history?department=${encodeURIComponent(currentDepartment)}&start_date=${startDate}&end_date=${endDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayHistory(data.history);
+            } else {
+                alert('获取历史记录失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('获取历史记录失败');
+        });
+}
+
+function displayHistory(history) {
+    const container = document.getElementById('historyResults');
+    container.innerHTML = '';
+    
+    if (Object.keys(history).length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">所选日期范围内没有手术记录</p>';
+        return;
+    }
+    
+    Object.entries(history)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .forEach(([date, surgeries]) => {
+            const dateDiv = document.createElement('div');
+            dateDiv.innerHTML = `
+                <h4 style="margin: 20px 0 10px 0;">
+                    ${date} (共${surgeries.length}台手术)
+                </h4>
+                <table class="surgery-table">
+                    <thead>
+                        <tr>
+                            <th>床号</th>
+                            <th>姓名</th>
+                            <th>手术</th>
+                            <th>主刀</th>
+                            <th>台次</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${surgeries.map(surgery => `
+                            <tr>
+                                <td>${surgery.BedNumber}</td>
+                                <td>${surgery.PatientName}</td>
+                                <td>${surgery.Operation}</td>
+                                <td>${surgery.MainSurgeon}</td>
+                                <td>${surgery.OperationOrder}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.appendChild(dateDiv);
+        });
+}
+
+function exportData() {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    window.location.href = `/api/surgeries/export?department=${encodeURIComponent(currentDepartment)}&start_date=${dateStr}&end_date=${dateStr}`;
+}
+
+function logout() {
+    localStorage.removeItem('surgery_auth');
+    window.location.href = '/';
+}
+    </script>
+</body>
+</html> 
