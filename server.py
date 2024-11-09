@@ -259,17 +259,32 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
         cursor = conn.cursor()
         
         try:
-            query = '''
-                SELECT Date, Department, BedNumber, PatientName, Gender, Age,
-                       HospitalNumber, Diagnosis, Operation, MainSurgeon,
-                       Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
-                       OperationOrder
-                FROM SurgerySchedule
-                WHERE Department = ?
-                AND Date BETWEEN ? AND ?
-                ORDER BY Date, OperationOrder
-            '''
-            cursor.execute(query, (department, start_date, end_date))
+            if department == 'all':
+                # Query for all departments
+                query = '''
+                    SELECT Date, Department, BedNumber, PatientName, Gender, Age,
+                           HospitalNumber, Diagnosis, Operation, MainSurgeon,
+                           Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
+                           OperationOrder
+                    FROM SurgerySchedule
+                    WHERE Date BETWEEN ? AND ?
+                    ORDER BY Date, Department, OperationOrder
+                '''
+                cursor.execute(query, (start_date, end_date))
+            else:
+                # Original single department query
+                query = '''
+                    SELECT Date, Department, BedNumber, PatientName, Gender, Age,
+                           HospitalNumber, Diagnosis, Operation, MainSurgeon,
+                           Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
+                           OperationOrder
+                    FROM SurgerySchedule
+                    WHERE Department = ?
+                    AND Date BETWEEN ? AND ?
+                    ORDER BY Date, OperationOrder
+                '''
+                cursor.execute(query, (department, start_date, end_date))
+            
             rows = cursor.fetchall()
             
             output = io.StringIO()

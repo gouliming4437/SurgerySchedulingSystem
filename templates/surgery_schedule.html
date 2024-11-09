@@ -205,10 +205,19 @@
         </div>
 
         <div class="department-selection" id="departmentSelection">
-            <h2>请选择病区</h2>
+            <h2>选择科室</h2>
             <div class="button-group">
                 <button class="button" onclick="selectDepartment('一病区')">一病区</button>
                 <button class="button" onclick="selectDepartment('二病区')">二病区</button>
+                <button class="button" onclick="selectDepartment('手术麻醉科')">手术麻醉科</button>
+            </div>
+        </div>
+
+        <div id="viewModeSelection" style="display: none;">
+            <h2>请选择查看方式</h2>
+            <div class="button-group">
+                <button class="button" onclick="selectViewMode('combined')">合并显示</button>
+                <button class="button" onclick="selectViewMode('separate')">分开显示</button>
             </div>
         </div>
 
@@ -219,39 +228,98 @@
                 <button onclick="changeDate('next')">后一天 &gt;</button>
             </div>
 
-            <div class="button-group">
-                <button class="button" onclick="showAddSurgery()">排手术</button>
-                <button class="button" onclick="showHistoryModal()">历史记录</button>
-                <button class="button" onclick="exportData()">导出数据</button>
-                <button class="button" onclick="window.print()">打印</button>
+            <!-- Combined View -->
+            <div id="combinedTable" style="display: none;">
+                <div class="button-group">
+                    <button class="button" onclick="showHistoryModal()">历史记录</button>
+                    <button class="button" onclick="exportAnesthesiaData()">导出数据</button>
+                    <button class="button" onclick="printCombinedTable()">打印合并表</button>
+                </div>
+                <div class="title">
+                    手术安排表 <span id="scheduleDate"></span>
+                </div>
+                <table class="surgery-table">
+                    <thead>
+                        <tr>
+                            <th>床号</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>年龄</th>
+                            <th>住院号</th>
+                            <th>临床诊断</th>
+                            <th>术式</th>
+                            <th>主刀</th>
+                            <th>助手</th>
+                            <th>管床医师</th>
+                            <th>麻醉</th>
+                            <th>术前准备</th>
+                            <th>台次</th>
+                            <th>科室</th>
+                        </tr>
+                    </thead>
+                    <tbody id="surgeryTableBody"></tbody>
+                    <tfoot id="surgeryTableSummary"></tfoot>
+                </table>
             </div>
 
-            <div class="title">
-                手术安排表 <span id="scheduleDate"></span>
-            </div>
+            <!-- Separate View -->
+            <div id="separateView" style="display: none;">
+                <div class="button-group">
+                    <button class="button" onclick="showHistoryModal()">历史记录</button>
+                    <button class="button" onclick="exportAnesthesiaData()">导出数据</button>
+                </div>
+                <div class="ward-section">
+                    <div class="title">一病区手术安排表 <span class="scheduleDate"></span></div>
+                    <button class="button" onclick="printTable('ward1')">打印一病区</button>
+                    <table id="ward1Table" class="surgery-table">
+                        <thead>
+                            <tr>
+                                <th>床号</th>
+                                <th>姓名</th>
+                                <th>性别</th>
+                                <th>年龄</th>
+                                <th>住院号</th>
+                                <th>临床诊断</th>
+                                <th>术式</th>
+                                <th>主刀</th>
+                                <th>助手</th>
+                                <th>管床医师</th>
+                                <th>麻醉</th>
+                                <th>术前准备</th>
+                                <th>台次</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ward1TableBody"></tbody>
+                        <tfoot id="ward1TableSummary"></tfoot>
+                    </table>
+                </div>
 
-            <table class="surgery-table">
-                <thead>
-                    <tr>
-                        <th>床号</th>
-                        <th>姓名</th>
-                        <th>性别</th>
-                        <th>年龄</th>
-                        <th>住院号</th>
-                        <th>临床诊断</th>
-                        <th>术式</th>
-                        <th>主刀</th>
-                        <th>助手</th>
-                        <th>管床医师</th>
-                        <th>麻醉</th>
-                        <th>术前准备</th>
-                        <th>台次</th>
-                        <th class="no-print">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="surgeryTableBody">
-                </tbody>
-            </table>
+                <div class="ward-section">
+                    <div class="title">二病区手术安排表 <span class="scheduleDate"></span></div>
+                    <button class="button" onclick="printTable('ward2')">打印二病区</button>
+                    <table id="ward2Table" class="surgery-table">
+                        <thead>
+                            <tr>
+                                <th>床号</th>
+                                <th>姓名</th>
+                                <th>性别</th>
+                                <th>年龄</th>
+                                <th>住院号</th>
+                                <th>临床诊断</th>
+                                <th>术式</th>
+                                <th>主刀</th>
+                                <th>助手</th>
+                                <th>管床医师</th>
+                                <th>麻醉</th>
+                                <th>术前准备</th>
+                                <th>台次</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ward2TableBody"></tbody>
+                        <tfoot id="ward2TableSummary"></tfoot>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Add/Edit Surgery Modal -->
@@ -337,13 +405,13 @@
         <div id="historyModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeHistoryModal()">&times;</span>
-                <h3>历史记录查询</h3>
+                <h3>历记录查询</h3>
                 <div class="form-group">
                     <label>开始日期：</label>
                     <input type="date" id="historyStartDate">
                 </div>
                 <div class="form-group">
-                    <label>结束日期：</label>
+                    <label>束日期：</label>
                     <input type="date" id="historyEndDate">
                 </div>
                 <button class="button" onclick="searchHistory()">查询</button>
@@ -371,30 +439,76 @@
         function selectDepartment(department) {
             currentDepartment = department;
             document.getElementById('departmentSelection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            loadSurgeries();
+            
+            if (department === '手术麻醉科') {
+                // Show view mode selection
+                document.getElementById('viewModeSelection').style.display = 'block';
+            } else {
+                // For individual departments
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('combinedTable').style.display = 'block';
+                document.getElementById('separateView').style.display = 'none';
+                
+                // Add the "Add Surgery" button for individual departments
+                const buttonGroup = document.querySelector('#combinedTable .button-group');
+                buttonGroup.innerHTML = `
+                    <button class="button" onclick="showAddSurgery()">排手术</button>
+                    <button class="button" onclick="showHistoryModal()">历史记录</button>
+                    <button class="button" onclick="exportData()">导出数据</button>
+                    <button class="button" onclick="window.print()">打印</button>
+                `;
+                
+                // Update table header without department column
+                updateTableHeader(false);
+                loadSurgeries();
+            }
         }
 
         function loadSurgeries() {
             const dateStr = currentDate.toISOString().split('T')[0];
             document.getElementById('scheduleDate').textContent = dateStr;
             
-            fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent(currentDepartment)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        displaySurgeries(data.surgeries);
+            if (currentDepartment === '手术麻醉科') {
+                // Fetch surgeries from both departments
+                Promise.all([
+                    fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent('一病区')}`).then(r => r.json()),
+                    fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent('二病区')}`).then(r => r.json())
+                ])
+                .then(([data1, data2]) => {
+                    if (data1.success && data2.success) {
+                        const allSurgeries = [
+                            ...data1.surgeries.map(s => ({...s, Department: '一病区'})),
+                            ...data2.surgeries.map(s => ({...s, Department: '二病区'}))
+                        ].sort((a, b) => a.OperationOrder - b.OperationOrder);
+                        
+                        displaySurgeries(allSurgeries, true);
                     } else {
-                        alert(data.message || '获取手术安排失败');
+                        alert('获取手术安排失败');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert('获取手术安排失败');
                 });
+            } else {
+                // Single department fetch
+                fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent(currentDepartment)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            displaySurgeries(data.surgeries || [], false);
+                        } else {
+                            alert(data.message || '获取手术安排失败');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('获取手术安排失败');
+                    });
+            }
         }
 
-        function displaySurgeries(surgeries) {
+        function displaySurgeries(surgeries, isAnesthesiaDept) {
             const tbody = document.getElementById('surgeryTableBody');
             tbody.innerHTML = '';
             
@@ -414,13 +528,63 @@
                     <td>${surgery.AnesthesiaType}</td>
                     <td>${surgery.PreOpPrep || '无'}</td>
                     <td>${surgery.OperationOrder}</td>
-                    <td class="no-print">
-                        <button class="button" onclick="editSurgery(${surgery.ID})">编辑</button>
-                        <button class="button" onclick="deleteSurgery(${surgery.ID})">删除</button>
-                    </td>
+                    ${isAnesthesiaDept ? `<td>${surgery.Department}</td>` : ''}
+                    ${!isAnesthesiaDept ? `
+                        <td class="no-print">
+                            <button class="button" onclick="editSurgery(${surgery.ID})">编辑</button>
+                            <button class="button" onclick="deleteSurgery(${surgery.ID})">删除</button>
+                        </td>
+                    ` : ''}
                 `;
                 tbody.appendChild(tr);
             });
+            
+            // Update summary
+            updateSurgerySummary(surgeries, isAnesthesiaDept);
+        }
+
+        function updateSurgerySummary(surgeries, isAnesthesiaDept) {
+            const summary = {};
+            const deptSummary = {};
+            
+            // Count surgeries for each surgeon and department
+            surgeries.forEach(surgery => {
+                if (!summary[surgery.MainSurgeon]) {
+                    summary[surgery.MainSurgeon] = 0;
+                }
+                summary[surgery.MainSurgeon]++;
+                
+                if (isAnesthesiaDept) {
+                    const dept = surgery.Department;
+                    if (!deptSummary[dept]) {
+                        deptSummary[dept] = 0;
+                    }
+                    deptSummary[dept]++;
+                }
+            });
+            
+            // Create summary text
+            const tfoot = document.getElementById('surgeryTableSummary');
+            const surgeonSummary = Object.entries(summary)
+                .map(([surgeon, count]) => `${surgeon}医师${count}台`)
+                .join('；');
+            
+            let summaryText = `共${surgeries.length}台；${surgeonSummary}`;
+            
+            if (isAnesthesiaDept) {
+                const deptBreakdown = Object.entries(deptSummary)
+                    .map(([dept, count]) => `${dept}${count}台`)
+                    .join('，');
+                summaryText = `${deptBreakdown}，${summaryText}`;
+            }
+            
+            tfoot.innerHTML = `
+                <tr>
+                    <td colspan="${isAnesthesiaDept ? '15' : '14'}" style="text-align: left; padding: 10px;">
+                        ${summaryText}。请在8:30a.m.接第一台。谢谢！
+                    </td>
+                </tr>
+            `;
         }
 
         // Add these functions after the existing JavaScript code in surgery_schedule.html
@@ -432,12 +596,34 @@ function changeDate(direction) {
         currentDate.setDate(currentDate.getDate() + 1);
     }
     document.getElementById('dateSelector').value = currentDate.toISOString().split('T')[0];
-    loadSurgeries();
+    
+    // Update all date displays
+    document.querySelectorAll('.scheduleDate').forEach(el => {
+        el.textContent = currentDate.toISOString().split('T')[0];
+    });
+    
+    // Reload surgeries based on view mode
+    if (document.getElementById('separateView').style.display === 'block') {
+        loadSeparateSurgeries();
+    } else {
+        loadSurgeries();
+    }
 }
 
 function selectDate(date) {
     currentDate = new Date(date);
-    loadSurgeries();
+    
+    // Update all date displays
+    document.querySelectorAll('.scheduleDate').forEach(el => {
+        el.textContent = currentDate.toISOString().split('T')[0];
+    });
+    
+    // Reload surgeries based on view mode
+    if (document.getElementById('separateView').style.display === 'block') {
+        loadSeparateSurgeries();
+    } else {
+        loadSurgeries();
+    }
 }
 
 function showAddSurgery() {
@@ -583,11 +769,32 @@ function searchHistory() {
         return;
     }
     
-    fetch(`/api/surgeries/history?department=${encodeURIComponent(currentDepartment)}&start_date=${startDate}&end_date=${endDate}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayHistory(data.history);
+    // For anesthesia department, fetch history from both departments
+    if (currentDepartment === '手术麻醉科') {
+        Promise.all([
+            fetch(`/api/surgeries/history?department=${encodeURIComponent('一病区')}&start_date=${startDate}&end_date=${endDate}`).then(r => r.json()),
+            fetch(`/api/surgeries/history?department=${encodeURIComponent('二病区')}&start_date=${startDate}&end_date=${endDate}`).then(r => r.json())
+        ])
+        .then(([data1, data2]) => {
+            if (data1.success && data2.success) {
+                // Combine histories from both departments
+                const combinedHistory = {};
+                
+                // Process first department's data
+                Object.entries(data1.history).forEach(([date, surgeries]) => {
+                    combinedHistory[date] = surgeries.map(s => ({...s, Department: '一病区'}));
+                });
+                
+                // Process second department's data and merge
+                Object.entries(data2.history).forEach(([date, surgeries]) => {
+                    if (combinedHistory[date]) {
+                        combinedHistory[date] = [...combinedHistory[date], ...surgeries.map(s => ({...s, Department: '二病区'}))];
+                    } else {
+                        combinedHistory[date] = surgeries.map(s => ({...s, Department: '二病区'}));
+                    }
+                });
+                
+                displayHistory(combinedHistory);
             } else {
                 alert('获取历史记录失败');
             }
@@ -596,6 +803,22 @@ function searchHistory() {
             console.error('Error:', error);
             alert('获取历史记录失败');
         });
+    } else {
+        // Original single department history fetch
+        fetch(`/api/surgeries/history?department=${encodeURIComponent(currentDepartment)}&start_date=${startDate}&end_date=${endDate}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayHistory(data.history);
+                } else {
+                    alert('获取历史记录失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('获取历史记录失败');
+            });
+    }
 }
 
 function displayHistory(history) {
@@ -623,6 +846,7 @@ function displayHistory(history) {
                             <th>手术</th>
                             <th>主刀</th>
                             <th>台次</th>
+                            ${currentDepartment === '手术麻醉科' ? '<th>科室</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
@@ -633,6 +857,7 @@ function displayHistory(history) {
                                 <td>${surgery.Operation}</td>
                                 <td>${surgery.MainSurgeon}</td>
                                 <td>${surgery.OperationOrder}</td>
+                                ${currentDepartment === '手术麻醉科' ? `<td>${surgery.Department}</td>` : ''}
                             </tr>
                         `).join('')}
                     </tbody>
@@ -650,6 +875,328 @@ function exportData() {
 function logout() {
     localStorage.removeItem('surgery_auth');
     window.location.href = '/';
+}
+
+// Add this function to update the table header
+function updateTableHeader(isAnesthesiaDept) {
+    const thead = document.querySelector('.surgery-table thead tr');
+    thead.innerHTML = `
+        <th>床号</th>
+        <th>姓名</th>
+        <th>性别</th>
+        <th>年龄</th>
+        <th>住院号</th>
+        <th>临床诊断</th>
+        <th>术式</th>
+        <th>主刀</th>
+        <th>助手</th>
+        <th>管床医师</th>
+        <th>麻醉</th>
+        <th>术前准备</th>
+        <th>台次</th>
+        ${isAnesthesiaDept ? '<th>科室</th>' : ''}
+        <th class="no-print">操作</th>
+    `;
+}
+
+// Add this function to handle view mode selection
+function selectViewMode(mode) {
+    document.getElementById('viewModeSelection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    if (mode === 'combined') {
+        // Show combined view
+        document.getElementById('separateView').style.display = 'none';
+        document.getElementById('combinedTable').style.display = 'block';
+        updateTableHeader(true);
+        loadSurgeries();
+    } else {
+        // Show separate view
+        document.getElementById('combinedTable').style.display = 'none';
+        document.getElementById('separateView').style.display = 'block';
+        loadSeparateSurgeries();
+    }
+}
+
+// Add function to load surgeries for separate tables
+function loadSeparateSurgeries() {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    document.getElementById('scheduleDate').textContent = dateStr;
+    
+    Promise.all([
+        fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent('一病区')}`).then(r => r.json()),
+        fetch(`/api/surgeries?date=${dateStr}&department=${encodeURIComponent('二病区')}`).then(r => r.json())
+    ])
+    .then(([data1, data2]) => {
+        if (data1.success && data2.success) {
+            displaySeparateSurgeries(data1.surgeries, data2.surgeries);
+        } else {
+            alert('获取手术安排失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('获取手术安排失败');
+    });
+}
+
+// Add function to display separate tables
+function displaySeparateSurgeries(ward1Surgeries, ward2Surgeries) {
+    displayDepartmentSurgeries('ward1Table', '一病区', ward1Surgeries);
+    displayDepartmentSurgeries('ward2Table', '二病区', ward2Surgeries);
+}
+
+function displayDepartmentSurgeries(tableId, department, surgeries) {
+    const tbody = document.getElementById(`${tableId}Body`);
+    tbody.innerHTML = '';
+    
+    surgeries.forEach(surgery => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${surgery.BedNumber}</td>
+            <td>${surgery.PatientName}</td>
+            <td>${surgery.Gender}</td>
+            <td>${surgery.Age}</td>
+            <td>${surgery.HospitalNumber}</td>
+            <td>${surgery.Diagnosis}</td>
+            <td>${surgery.Operation}</td>
+            <td>${surgery.MainSurgeon}</td>
+            <td>${surgery.Assistant}</td>
+            <td>${surgery.AnesthesiaDoctor}</td>
+            <td>${surgery.AnesthesiaType}</td>
+            <td>${surgery.PreOpPrep || '无'}</td>
+            <td>${surgery.OperationOrder}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Update summary for each department
+    updateDepartmentSummary(`${tableId}Summary`, surgeries);
+}
+
+function updateDepartmentSummary(summaryId, surgeries) {
+    const summary = {};
+    surgeries.forEach(surgery => {
+        if (!summary[surgery.MainSurgeon]) {
+            summary[surgery.MainSurgeon] = 0;
+        }
+        summary[surgery.MainSurgeon]++;
+    });
+    
+    const surgeonSummary = Object.entries(summary)
+        .map(([surgeon, count]) => `${surgeon}医师${count}台`)
+        .join('；');
+    
+    const summaryText = `共${surgeries.length}台；${surgeonSummary}`;
+    
+    document.getElementById(summaryId).innerHTML = `
+        <tr>
+            <td colspan="13" style="text-align: left; padding: 10px;">
+                ${summaryText}。请在8:30a.m.接第一台。谢谢！
+            </td>
+        </tr>
+    `;
+}
+
+// Add function to print specific table
+function printTable(wardId) {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const department = wardId === 'ward1' ? '一病区' : '二病区';
+    
+    // Get the surgery data from the current table
+    const tableBody = document.getElementById(`${wardId}TableBody`);
+    const summaryText = document.getElementById(`${wardId}TableSummary`).textContent;
+    
+    // Create the print content
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${department}手术安排表</title>
+            <style>
+                @page {
+                    size: landscape;
+                    margin: 1cm;
+                }
+                body {
+                    font-family: SimSun, serif;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .title {
+                    text-align: center;
+                    font-size: 18pt;
+                    margin-bottom: 20px;
+                    font-weight: bold;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 4px;
+                    text-align: center;
+                    font-size: 10pt;
+                }
+                th {
+                    background-color: #f0f0f0;
+                }
+                .summary {
+                    margin-top: 20px;
+                    text-align: left;
+                    font-size: 10pt;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="title">${department}手术安排表——${dateStr}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>床号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>住院号</th>
+                        <th>临床诊断</th>
+                        <th>术式</th>
+                        <th>主刀</th>
+                        <th>助手</th>
+                        <th>管床医师</th>
+                        <th>麻醉</th>
+                        <th>术前准备</th>
+                        <th>台次</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableBody.innerHTML}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="13" style="text-align: left; padding: 10px;">
+                            ${summaryText}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+        printWindow.print();
+        // Optional: close the window after printing
+        // printWindow.close();
+    };
+}
+
+function exportAnesthesiaData() {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    window.location.href = `/api/surgeries/export?department=all&start_date=${dateStr}&end_date=${dateStr}`;
+}
+
+function printCombinedTable() {
+    const printWindow = window.open('', '_blank');
+    const dateStr = currentDate.toISOString().split('T')[0];
+    
+    // Get the surgery data and summary
+    const tableBody = document.getElementById('surgeryTableBody');
+    const summaryText = document.getElementById('surgeryTableSummary').textContent;
+    
+    // Create the print content
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>手术麻醉科手术安排表</title>
+            <style>
+                @page {
+                    size: landscape;
+                    margin: 1cm;
+                }
+                body {
+                    font-family: SimSun, serif;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .title {
+                    text-align: center;
+                    font-size: 18pt;
+                    margin-bottom: 20px;
+                    font-weight: bold;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 4px;
+                    text-align: center;
+                    font-size: 10pt;
+                }
+                th {
+                    background-color: #f0f0f0;
+                }
+                .summary {
+                    margin-top: 20px;
+                    text-align: left;
+                    font-size: 10pt;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="title">手术麻醉科手术安排表——${dateStr}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>床号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>住院号</th>
+                        <th>临床诊断</th>
+                        <th>术式</th>
+                        <th>主刀</th>
+                        <th>助手</th>
+                        <th>管床医师</th>
+                        <th>麻醉</th>
+                        <th>术前准备</th>
+                        <th>台次</th>
+                        <th>科室</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableBody.innerHTML}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="14" style="text-align: left; padding: 10px;">
+                            ${summaryText}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+        printWindow.print();
+        // Optional: close the window after printing
+        // printWindow.close();
+    };
 }
     </script>
 </body>
