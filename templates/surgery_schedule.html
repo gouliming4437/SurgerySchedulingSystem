@@ -195,6 +195,47 @@
         display: none;
     }
 }
+
+/* Add or update these styles in the style section */
+.form-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
+    gap: 15px;
+    padding: 20px;
+}
+
+.form-group {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label {
+    width: 80px;
+    text-align: right;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.form-group input,
+.form-group select {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: calc(100% - 90px); /* Adjust input width */
+}
+
+.button-group {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    margin-top: 20px;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 1000px; /* Increased max-width to accommodate horizontal layout */
+}
     </style>
 </head>
 <body>
@@ -331,74 +372,76 @@
                 <span class="close" onclick="closeSurgeryModal()">&times;</span>
                 <h3 id="modalTitle">添加手术安排</h3>
                 <form id="surgeryForm">
-                    <div class="form-group">
-                        <label>日期：</label>
-                        <input type="date" id="surgeryDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>床号：</label>
-                        <input type="text" id="bedNumber" required>
-                    </div>
-                    <div class="form-group">
-                        <label>姓名：</label>
-                        <input type="text" id="patientName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>性别：</label>
-                        <select id="gender" required>
-                            <option value="男">男</option>
-                            <option value="女">女</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>年龄：</label>
-                        <input type="number" id="age" required>
-                    </div>
-                    <div class="form-group">
-                        <label>住院号：</label>
-                        <input type="text" id="hospitalNumber" required>
-                    </div>
-                    <div class="form-group">
-                        <label>临床诊断：</label>
-                        <input type="text" id="diagnosis" required>
-                    </div>
-                    <div class="form-group">
-                        <label>术式：</label>
-                        <input type="text" id="operation" required>
-                    </div>
-                    <div class="form-group">
-                        <label>主刀：</label>
-                        <input type="text" id="mainSurgeon" required>
-                    </div>
-                    <div class="form-group">
-                        <label>助手：</label>
-                        <input type="text" id="assistant" required>
-                    </div>
-                    <div class="form-group">
-                        <label>管床医师：</label>
-                        <input type="text" id="wardDoctor" required>
-                    </div>
-                    <div class="form-group">
-                        <label>麻醉：</label>
-                        <select id="anesthesia" required>
-                            <option value="全麻">全麻</option>
-                            <option value="局麻">局麻</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>术前准备：</label>
-                        <select id="preOpPrep">
-                            <option value="无">无</option>
-                            <option value="有">有</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>台次：</label>
-                        <input type="number" id="operationOrder" required>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" class="button">保存</button>
-                        <button type="button" class="button" onclick="closeSurgeryModal()">取消</button>
+                    <div class="form-container">
+                        <div class="form-group">
+                            <label>日期：</label>
+                            <input type="date" id="surgeryDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>床号：</label>
+                            <input type="text" id="bedNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label>姓名：</label>
+                            <input type="text" id="patientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>性别：</label>
+                            <select id="gender" required>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>年龄：</label>
+                            <input type="number" id="age" required>
+                        </div>
+                        <div class="form-group">
+                            <label>住院号：</label>
+                            <input type="text" id="hospitalNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label>临床诊断：</label>
+                            <input type="text" id="diagnosis" required>
+                        </div>
+                        <div class="form-group">
+                            <label>术式：</label>
+                            <input type="text" id="operation" required>
+                        </div>
+                        <div class="form-group">
+                            <label>主刀：</label>
+                            <input type="text" id="mainSurgeon" required>
+                        </div>
+                        <div class="form-group">
+                            <label>助手：</label>
+                            <input type="text" id="assistant" required>
+                        </div>
+                        <div class="form-group">
+                            <label>管床医师：</label>
+                            <input type="text" id="wardDoctor" required>
+                        </div>
+                        <div class="form-group">
+                            <label>麻醉：</label>
+                            <select id="anesthesia" required>
+                                <option value="全麻">全麻</option>
+                                <option value="局麻">局麻</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>术前准备：</label>
+                            <select id="preOpPrep">
+                                <option value="无">无</option>
+                                <option value="有">有</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>台次：</label>
+                            <input type="number" id="operationOrder" required>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="button">保存</button>
+                            <button type="button" class="button" onclick="closeSurgeryModal()">取消</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -534,8 +577,8 @@
                     ${isAnesthesiaDept ? `<td>${surgery.Department}</td>` : ''}
                     ${!isAnesthesiaDept ? `
                         <td class="no-print">
-                            <button class="button" onclick="editSurgery(${surgery.ID})">编辑</button>
-                            <button class="button" onclick="deleteSurgery(${surgery.ID})">删除</button>
+                            <button class="edit-btn" onclick="editSurgery(${surgery.ID})">编辑</button>
+                            <button class="delete-btn" onclick="deleteSurgery(${surgery.ID})">删除</button>
                         </td>
                     ` : ''}
                 `;

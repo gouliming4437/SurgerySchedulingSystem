@@ -97,6 +97,23 @@
     .button {
         display: none !important;
     }
+
+    /* Add these print-specific rules */
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Ensure table prints well */
+    .surgery-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .surgery-table th,
+    .surgery-table td {
+        border: 1px solid #000;
+        padding: 4px;
+    }
 }
 
 /* Add styles for separate view layout */
