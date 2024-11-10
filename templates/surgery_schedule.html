@@ -282,7 +282,7 @@
                                 <th>性别</th>
                                 <th>年龄</th>
                                 <th>住院号</th>
-                                <th>临��诊断</th>
+                                <th>临床诊断</th>
                                 <th>术式</th>
                                 <th>主刀</th>
                                 <th>助手</th>
@@ -386,7 +386,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>术前准备���</label>
+                        <label>术前准备：</label>
                         <select id="preOpPrep">
                             <option value="无">无</option>
                             <option value="有">有</option>
@@ -458,7 +458,7 @@
                     <button class="button" onclick="showAddSurgery()">排手术</button>
                     <button class="button" onclick="showHistoryModal()">历史记录</button>
                     <button class="button" onclick="exportData()">导出数据</button>
-                    <button class="button" onclick="printTable()">打印</button>
+                    <button class="button" onclick="window.print()">打印</button>
                 `;
                 
                 // Update table header without department column
@@ -1002,20 +1002,22 @@ function updateDepartmentSummary(summaryId, surgeries) {
 }
 
 // Add function to print specific table
-function printTable() {
+function printTable(wardId) {
+    // Create a new window for printing
     const printWindow = window.open('', '_blank');
     const dateStr = currentDate.toISOString().split('T')[0];
+    const department = wardId === 'ward1' ? '一病区' : '二病区';
     
     // Get the surgery data from the current table
-    const tableBody = document.getElementById('surgeryTableBody');
-    const summaryText = document.getElementById('surgeryTableSummary').textContent;
+    const tableBody = document.getElementById(`${wardId}TableBody`);
+    const summaryText = document.getElementById(`${wardId}TableSummary`).textContent;
     
     // Create the print content
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>${currentDepartment}手术安排表</title>
+            <title>${department}手术安排表</title>
             <style>
                 @page {
                     size: landscape;
@@ -1053,7 +1055,7 @@ function printTable() {
             </style>
         </head>
         <body>
-            <div class="title">${currentDepartment}手术安排表——${dateStr}</div>
+            <div class="title">${department}手术安排表——${dateStr}</div>
             <table>
                 <thead>
                     <tr>
