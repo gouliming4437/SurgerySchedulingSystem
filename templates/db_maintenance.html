@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>数据库维护</title>
+    <meta charset="utf-8">
+    <style>
+        .maintenance-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .button-group {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .maintenance-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+        }
+        .maintenance-button:hover {
+            background-color: #357abd;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .stats-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-title {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        .log-container {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab-button.active {
+            background: #4a90e2;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .import-form {
+            margin-top: 15px;
+        }
+        
+        /* Footer styles */
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+        
+        body {
+            margin-bottom: 100px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .footer .container {
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        .text-muted {
+            color: #6c757d;
+        }
+    </style>
+    
+    <!-- Add Bootstrap CSS for footer styling -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="maintenance-container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>数据库维护</h2>
+            <button class="maintenance-button" onclick="adminLogout()" style="background-color: #dc3545;">退出登录</button>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('maintenance')">基础维护</button>
+                <button class="tab-button" onclick="showTab('stats')">数据统计</button>
+                <button class="tab-button" onclick="showTab('backup')">备份还原</button>
+                <button class="tab-button" onclick="showTab('logs')">系统日志</button>
+            </div>
+            
+            <!-- Maintenance Tab -->
+            <div id="maintenance" class="tab-content active">
+                <div class="button-group">
+                    <button class="maintenance-button" onclick="performMaintenance('vacuum')">整理数据库</button>
+                    <button class="maintenance-button" onclick="performMaintenance('archive')">归档旧数据</button>
+                    <button class="maintenance-button" onclick="performMaintenance('add_indexes')">添加索引</button>
+                    <button class="maintenance-button" onclick="performMaintenance('analyze')">分析数据库</button>
+                    <button class="maintenance-button" onclick="resetDatabase()" style="background-color: #dc3545;">重置数据库</button>
+                </div>
+            </div>
+            
+            <!-- Statistics Tab -->
+            <div id="stats" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">总记录数</div>
+                        <div class="stat-value" id="totalRecords">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">数据库大小</div>
+                        <div class="stat-value" id="dbSize">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">归档记录数</div>
+                        <div class="stat-value" id="archivedRecords">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">最早记录日期</div>
+                        <div class="stat-value" id="oldestRecord">-</div>
+                    </div>
+                </div>
+                <button class="maintenance-button" onclick="refreshStats()" style="margin-top: 15px;">刷新统计</button>
+            </div>
+            
+            <!-- Backup Tab -->
+            <div id="backup" class="tab-content">
+                <div class="button-group">
+                    <button class="maintenance-button" onclick="createBackup()">创建备份</button>
+                    <button class="maintenance-button" onclick="downloadLatestBackup()">下载最新备份</button>
+                </div>
+                <div class="import-form">
+                    <h4>导入备份</h4>
+                    <input type="file" id="backupFile" accept=".db,.zip">
+                    <button class="maintenance-button" onclick="importBackup()">导入</button>
+                </div>
+                <div id="backupsList" class="log-container">
+                    <!-- Backup files will be listed here -->
+                </div>
+            </div>
+            
+            <!-- Logs Tab -->
+            <div id="logs" class="tab-content">
+                <div class="button-group">
+                    <button class="maintenance-button" onclick="refreshLogs()">刷新日志</button>
+                    <button class="maintenance-button" onclick="clearLogs()">清除日志</button>
+                </div>
+                <div id="logEntries" class="log-container">
+                    <!-- Log entries will be displayed here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Add this at the start of your script section
+        window.onerror = function(msg, url, line) {
+            showStatus(false, `JavaScript error: ${msg}`);
+            return false;
+        };
+
+        // Show/hide tabs
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+            
+            if (tabId === 'stats') {
+                refreshStats();
+            } else if (tabId === 'logs') {
+                refreshLogs();
+            } else if (tabId === 'backup') {
+                refreshBackupsList();
+            }
+        }
+
+        // Existing maintenance function
+        async function performMaintenance(operation) {
+            try {
+                showStatus(true, '正在执行操作...');
+                const response = await fetch(`/api/db/maintenance?operation=${operation}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                showStatus(data.success, data.message);
+                if (data.success) {
+                    refreshStats();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(false, `操作失败: ${error.message}`);
+            }
+        }
+
+        // Statistics functions
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/db/stats');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('totalRecords').textContent = data.stats.totalRecords;
+                    document.getElementById('dbSize').textContent = data.stats.dbSize;
+                    document.getElementById('archivedRecords').textContent = data.stats.archivedRecords;
+                    document.getElementById('oldestRecord').textContent = data.stats.oldestRecord;
+                }
+            } catch (error) {
+                showStatus(false, '获取统计信息失败');
+            }
+        }
+
+        // Backup functions
+        async function createBackup() {
+            try {
+                const response = await fetch('/api/database/backup', { method: 'POST' });
+                const data = await response.json();
+                showStatus(data.success, data.message);
+                if (data.success) {
+                    refreshBackupsList();
+                }
+            } catch (error) {
+                showStatus(false, '创建备份失败');
+            }
+        }
+
+        async function refreshBackupsList() {
+            try {
+                const response = await fetch('/api/database/backups');
+                const data = await response.json();
+                if (data.success) {
+                    const backupsList = document.getElementById('backupsList');
+                    backupsList.innerHTML = data.backups.map(backup => `
+                        <div class="log-entry">
+                            ${backup.filename} (${backup.size})
+                            <button onclick="downloadBackup('${backup.filename}')" style="float: right;">下载</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                showStatus(false, '获取备份列表失败');
+            }
+        }
+
+        async function importBackup() {
+            const fileInput = document.getElementById('backupFile');
+            if (!fileInput.files.length) {
+                showStatus(false, '请��择备份文件');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('backup', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/database/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showStatus(data.success, data.message);
+                if (data.success) {
+                    fileInput.value = '';
+                    refreshStats();
+                }
+            } catch (error) {
+                showStatus(false, '导入备份失败');
+            }
+        }
+
+        // Log functions
+        async function refreshLogs() {
+            try {
+                const response = await fetch('/api/database/logs');
+                const data = await response.json();
+                if (data.success) {
+                    const logEntries = document.getElementById('logEntries');
+                    logEntries.innerHTML = data.logs.map(log => `
+                        <div class="log-entry">
+                            <strong>${log.timestamp}</strong> - ${log.message}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                showStatus(false, '获取日志失败');
+            }
+        }
+
+        async function clearLogs() {
+            if (!confirm('确定要清除所有日志吗？')) return;
+            
+            try {
+                const response = await fetch('/api/database/logs/clear', { method: 'POST' });
+                const data = await response.json();
+                showStatus(data.success, data.message);
+                if (data.success) {
+                    refreshLogs();
+                }
+            } catch (error) {
+                showStatus(false, '清除日志失败');
+            }
+        }
+
+        // Utility functions
+        function showStatus(success, message) {
+            const statusDiv = document.getElementById('status');
+            if (!statusDiv) {
+                console.error('Status div not found!');
+                return;
+            }
+            statusDiv.style.display = 'block';
+            statusDiv.className = `status ${success ? 'success' : 'error'}`;
+            statusDiv.textContent = message;
+            if (success) {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // The server will handle authentication through cookies
+            refreshStats();
+        });
+
+        async function resetDatabase() {
+            if (!confirm('警告：此操作将备份当前数据库并创建一个全新的空数据库。是否继续？')) {
+                return;
+            }
+            
+            try {
+                showStatus(true, '正在重置数据库...');
+                const response = await fetch('/api/db/maintenance?operation=reset');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                showStatus(data.success, data.message);
+                if (data.success) {
+                    refreshStats();
+                    refreshBackupsList();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(false, `重置失败: ${error.message}`);
+            }
+        }
+
+        // Add logout function
+        function adminLogout() {
+            // Clear the authentication cookie
+            document.cookie = 'admin_auth=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.location.href = '/admin/login';
+        }
+    </script>
+
+    {{ include 'footer.html' }}
+</body>
+</html> 
