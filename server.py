@@ -226,9 +226,13 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                 columns = [description[0] for description in cursor.description]
                 surgeries = [dict(zip(columns, row)) for row in cursor.fetchall()]
                 
+                # Set title based on department
+                title = "颌面外科手术安排表" if department == '手术麻醉科' else f'{department}手术安排表'
+                
                 self.send_json({
                     'success': True,
-                    'surgeries': surgeries
+                    'surgeries': surgeries,
+                    'title': f'{title} {date}'
                 })
         except Exception as e:
             self.send_json({
