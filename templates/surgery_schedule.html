@@ -192,12 +192,6 @@
     .modal {
         display: none !important;
     }
-
-    /* Hide operations column */
-    .operations-column,
-    .no-print {
-        display: none !important;
-    }
 }
 
 /* Add or update these styles in the style section */
@@ -240,6 +234,34 @@
     width: 90%;
     max-width: 1000px; /* Increased max-width to accommodate horizontal layout */
 }
+
+/* Add this to the existing print styles in the <style> section */
+<style>
+    @media print {
+        /* Hide edit/delete buttons when printing */
+        .no-print,
+        .edit-btn,
+        .delete-btn {
+            display: none !important;
+        }
+        
+        /* Hide the operations column entirely when printing */
+        .surgery-table td:last-child,
+        .surgery-table th:last-child {
+            display: none !important;
+        }
+
+        /* Hide the operations column and buttons when printing */
+        .operations-column {
+            display: none !important;
+        }
+        
+        .edit-btn, 
+        .delete-btn {
+            display: none !important;
+        }
+    }
+</style>
     </style>
 </head>
 <body>
@@ -405,7 +427,7 @@
                             <input type="text" id="hospitalNumber" required>
                         </div>
                         <div class="form-group">
-                            <label>临床诊断：</label>
+                            <label>床诊断：</label>
                             <input type="text" id="diagnosis" required>
                         </div>
                         <div class="form-group">
@@ -441,6 +463,10 @@
                         <div class="form-group">
                             <label>台次：</label>
                             <input type="number" id="operationOrder" required>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>从HTML导入：</label>
+                            <input type="file" id="htmlFile" accept=".html" onchange="parseHtmlFile(this)">
                         </div>
                         <div class="button-group">
                             <button type="submit" class="button">保存</button>
@@ -489,11 +515,37 @@
             // Check if there's a saved department
             const savedDepartment = localStorage.getItem('selected_department');
             if (savedDepartment) {
-                // Skip department selection and go directly to the department view
-                selectDepartment(savedDepartment);
+                // Restore the previous department view
+                currentDepartment = savedDepartment;
+                document.getElementById('departmentSelection').style.display = 'none';
+                
+                if (savedDepartment === '手术麻醉科') {
+                    // Show view mode selection for anesthesia department
+                    document.getElementById('viewModeSelection').style.display = 'block';
+                } else {
+                    // For individual departments
+                    document.getElementById('mainContent').style.display = 'block';
+                    document.getElementById('combinedTable').style.display = 'block';
+                    document.getElementById('separateView').style.display = 'none';
+                    
+                    // Add the "Add Surgery" button for individual departments
+                    const buttonGroup = document.querySelector('#combinedTable .button-group');
+                    buttonGroup.innerHTML = `
+                        <button class="button" onclick="showAddSurgery()">排手术</button>
+                        <button class="button" onclick="showHistoryModal()">历史记录</button>
+                        <button class="button" onclick="exportData()">导出数据</button>
+                        <button class="button" onclick="printDepartmentTable()">打印</button>
+                    `;
+                    
+                    // Update table header without department column
+                    updateTableHeader(false);
+                    loadSurgeries();
+                }
             } else {
-                // Show department selection
+                // Show department selection if no department is saved
                 document.getElementById('departmentSelection').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('viewModeSelection').style.display = 'none';
             }
         };
 
@@ -581,24 +633,28 @@
             tbody.innerHTML = '';
             
             surgeries.forEach(surgery => {
+                // Format diagnosis and operation text
+                const diagnosis = surgery.Diagnosis.split('(')[0].trim(); // Take only the main part
+                const operation = surgery.Operation.split('+').join('、'); // Join with Chinese comma
+                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${surgery.BedNumber}</td>
-                    <td>${surgery.PatientName}</td>
-                    <td>${surgery.Gender}</td>
-                    <td>${surgery.Age}</td>
-                    <td>${surgery.HospitalNumber}</td>
-                    <td>${surgery.Diagnosis}</td>
-                    <td>${surgery.Operation}</td>
-                    <td>${surgery.MainSurgeon}</td>
-                    <td>${surgery.Assistant}</td>
-                    <td>${surgery.AnesthesiaDoctor}</td>
-                    <td>${surgery.AnesthesiaType}</td>
-                    <td>${surgery.PreOpPrep || '无'}</td>
-                    <td>${surgery.OperationOrder}</td>
+                    <td style="width: 4%;">${surgery.BedNumber}</td>
+                    <td style="width: 6%;">${surgery.PatientName}</td>
+                    <td style="width: 4%;">${surgery.Gender}</td>
+                    <td style="width: 4%;">${surgery.Age}</td>
+                    <td style="width: 8%;">${surgery.HospitalNumber}</td>
+                    <td style="width: 20%; text-align: left;">${diagnosis}</td>
+                    <td style="width: 20%; text-align: left;">${operation}</td>
+                    <td style="width: 6%;">${surgery.MainSurgeon}</td>
+                    <td style="width: 6%;">${surgery.Assistant}</td>
+                    <td style="width: 6%;">${surgery.AnesthesiaDoctor}</td>
+                    <td style="width: 6%;">${surgery.AnesthesiaType}</td>
+                    <td style="width: 5%;">${surgery.PreOpPrep || '无'}</td>
+                    <td style="width: 5%;">${surgery.OperationOrder}</td>
                     ${isAnesthesiaDept ? `<td>${surgery.Department}</td>` : ''}
                     ${!isAnesthesiaDept ? `
-                        <td class="operations-column no-print">
+                        <td class="operations-column">
                             <button class="edit-btn" onclick="editSurgery(${surgery.ID})">编辑</button>
                             <button class="delete-btn" onclick="deleteSurgery(${surgery.ID})">删除</button>
                         </td>
@@ -941,8 +997,14 @@ function exportData() {
 }
 
 function logout() {
-    localStorage.removeItem('surgery_auth');
-    localStorage.removeItem('selected_department');
+    // Clear all saved data
+    localStorage.clear();  // This will clear all localStorage items including 'surgery_auth' and 'selected_department'
+    
+    // Or if you prefer to be more specific:
+    // localStorage.removeItem('surgery_auth');
+    // localStorage.removeItem('selected_department');
+    
+    // Redirect to login page
     window.location.href = '/';
 }
 
@@ -961,7 +1023,7 @@ function updateTableHeader(isAnesthesiaDept) {
         <th>助手</th>
         <th>管床医师</th>
         <th>麻醉</th>
-        <th>术前准备</th>
+        <th>术准备</th>
         <th>台次</th>
         ${isAnesthesiaDept ? '<th>科室</th>' : ''}
         <th class="no-print">操作</th>
@@ -1280,16 +1342,27 @@ function printDepartmentTable() {
     const printWindow = window.open('', '_blank');
     const dateStr = currentDate.toISOString().split('T')[0];
     
-    // Get the surgery data and summary
-    const tableBody = document.getElementById('surgeryTableBody');
-    
-    // Create a clean version of the table data
-    const cleanTableData = Array.from(tableBody.querySelectorAll('tr')).map(row => {
-        const cells = Array.from(row.cells);
-        // Only take the first 13 cells (excluding the operations column)
-        return cells.slice(0, 13).map(cell => cell.textContent.trim());
+    // Get the surgery data
+    const surgeries = Array.from(document.getElementById('surgeryTableBody').getElementsByTagName('tr')).map(row => {
+        const cells = row.getElementsByTagName('td');
+        return {
+            bedNumber: cells[0].textContent,
+            name: cells[1].textContent,
+            gender: cells[2].textContent,
+            age: cells[3].textContent,
+            hospitalNumber: cells[4].textContent,
+            diagnosis: cells[5].textContent,
+            operation: cells[6].textContent,
+            surgeon: cells[7].textContent,
+            assistant: cells[8].textContent,
+            doctor: cells[9].textContent,
+            anesthesia: cells[10].textContent,
+            prep: cells[11].textContent,
+            order: cells[12].textContent
+        };
     });
-    
+
+    // Get the summary text
     const summaryText = document.getElementById('surgeryTableSummary').textContent;
     
     // Create the print content
@@ -1300,32 +1373,35 @@ function printDepartmentTable() {
             <meta charset="utf-8">
             <title>${currentDepartment}手术安排表</title>
             <style>
+                @media print {
+                    @page {
+                        size: landscape;
+                        margin: 1cm;
+                    }
+                }
                 @page {
                     size: landscape;
                     margin: 1cm;
                 }
-                body {
-                    font-family: SimSun, serif;
+                html, body {
+                    width: 297mm; /* A4 landscape width */
+                    height: 210mm; /* A4 landscape height */
                     margin: 0;
                     padding: 20px;
                 }
-                .print-content {
-                    visibility: visible;
+                body {
+                    font-family: SimSun, serif;
                 }
-                h1 {
+                .title {
                     text-align: center;
                     font-size: 18pt;
                     font-weight: bold;
                     margin-bottom: 20px;
                 }
-                .summary {
-                    text-align: left;
-                    font-size: 10pt;
-                    margin: 20px 0;
-                }
                 table {
                     width: 100%;
                     border-collapse: collapse;
+                    table-layout: fixed;
                 }
                 th, td {
                     border: 1px solid black;
@@ -1333,42 +1409,59 @@ function printDepartmentTable() {
                     text-align: center;
                     font-size: 10pt;
                 }
-                th {
-                    background-color: #f0f0f0;
+                td {
+                    height: 24px;
+                }
+                td:nth-child(6), td:nth-child(7) {
+                    text-align: left;
+                }
+                .summary {
+                    margin-top: 10px;
+                    text-align: left;
                 }
             </style>
         </head>
         <body>
-            <div class="print-content">
-                <h1>${currentDepartment}手术安排表 ${dateStr}</h1>
-                <div class="summary">${summaryText}</div>
-                <table>
-                    <thead>
+            <div class="title">${currentDepartment}手术安排表 ${dateStr}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">床号</th>
+                        <th style="width: 6%;">姓名</th>
+                        <th style="width: 4%;">性别</th>
+                        <th style="width: 4%;">年龄</th>
+                        <th style="width: 8%;">住院号</th>
+                        <th style="width: 20%;">临床诊断</th>
+                        <th style="width: 20%;">术式</th>
+                        <th style="width: 6%;">主刀</th>
+                        <th style="width: 6%;">助手</th>
+                        <th style="width: 6%;">管床医师</th>
+                        <th style="width: 6%;">麻醉</th>
+                        <th style="width: 5%;">术前准备</th>
+                        <th style="width: 5%;">台次</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${surgeries.map(surgery => `
                         <tr>
-                            <th>床号</th>
-                            <th>姓名</th>
-                            <th>性别</th>
-                            <th>年龄</th>
-                            <th>住院号</th>
-                            <th>临床诊断</th>
-                            <th>术式</th>
-                            <th>主刀</th>
-                            <th>助手</th>
-                            <th>管床医师</th>
-                            <th>麻醉</th>
-                            <th>术前准备</th>
-                            <th>台次</th>
+                            <td>${surgery.bedNumber}</td>
+                            <td>${surgery.name}</td>
+                            <td>${surgery.gender}</td>
+                            <td>${surgery.age}</td>
+                            <td>${surgery.hospitalNumber}</td>
+                            <td style="text-align: left;">${surgery.diagnosis}</td>
+                            <td style="text-align: left;">${surgery.operation}</td>
+                            <td>${surgery.surgeon}</td>
+                            <td>${surgery.assistant}</td>
+                            <td>${surgery.doctor}</td>
+                            <td>${surgery.anesthesia}</td>
+                            <td>${surgery.prep}</td>
+                            <td>${surgery.order}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${cleanTableData.map(row => `
-                            <tr>
-                                ${row.map(cell => `<td>${cell}</td>`).join('')}
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="summary">${summaryText}</div>
         </body>
         </html>
     `);
@@ -1380,6 +1473,44 @@ function printDepartmentTable() {
         printWindow.focus();
         printWindow.print();
     }, 250);
+}
+
+async function parseHtmlFile(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/surgery/parse_html', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Auto-fill the form fields
+            document.getElementById('bedNumber').value = data.data.BedNumber;
+            document.getElementById('patientName').value = data.data.PatientName;
+            document.getElementById('gender').value = data.data.Gender;
+            document.getElementById('age').value = data.data.Age;
+            document.getElementById('hospitalNumber').value = data.data.HospitalNumber;
+            document.getElementById('diagnosis').value = data.data.Diagnosis;
+            document.getElementById('operation').value = data.data.Operation;
+            document.getElementById('mainSurgeon').value = data.data.MainSurgeon;
+            document.getElementById('wardDoctor').value = data.data.AnesthesiaDoctor;
+            document.getElementById('anesthesia').value = data.data.AnesthesiaType;
+        } else {
+            alert('解析HTML文件失败：' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('解析HTML文件失败');
+    }
+    
+    // Clear the file input
+    input.value = '';
 }
     </script>
 </body>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>手术信息提取</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>手术信息提取系统</h2>
+    <div class="upload-container">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".html" required>
+            <br>
+            <input type="submit" value="上传并提取" class="upload-btn">
+        </form>
+    </div>
+</body>
+</html> 

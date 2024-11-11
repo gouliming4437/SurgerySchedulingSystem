@@ -15,6 +15,8 @@ from contextlib import contextmanager
 import queue
 import threading
 import logging
+from HtmlParse.extract_surgery_info import SurgeryInfoParser
+import tempfile
 
 PORT = 8501
 
@@ -120,6 +122,40 @@ def load_template(filename, **kwargs):
     
     return content
 
+def parse_surgery_html(html_content):
+    """Parse surgery information from HTML content"""
+    parser = SurgeryInfoParser()
+    parser.feed(html_content)
+    
+    # Map the parsed data to our system's field names
+    field_mapping = {
+        'bed_number': 'BedNumber',
+        'patient_name': 'PatientName', 
+        'gender': 'Gender',
+        'age': 'Age',
+        'patient_number': 'HospitalNumber',
+        'diagnosis': 'Diagnosis',
+        'operation': 'Operation',
+        'surgeon': 'MainSurgeon',  # 经治医生 maps to 主刀
+        'anesthesia': 'AnesthesiaType'
+    }
+    
+    mapped_data = {}
+    for html_field, sys_field in field_mapping.items():
+        value = parser.data.get(html_field, '')
+        if html_field == 'age':
+            # Convert age string to integer
+            try:
+                value = int(value.replace('岁', ''))
+            except:
+                value = 0
+        mapped_data[sys_field] = value
+        
+    # Set 管床医生 same as 主刀
+    mapped_data['AnesthesiaDoctor'] = mapped_data['MainSurgeon']
+    
+    return mapped_data
+
 class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
@@ -185,6 +221,8 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_clear_logs()
         elif path == '/api/admin/login':
             self.handle_admin_login()
+        elif path == '/api/surgery/parse_html':
+            self.handle_parse_html()
         else:
             self.send_error(404)
 
@@ -502,7 +540,7 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
             logging.error(f"Maintenance operation failed: {str(e)}")
             self.send_json({
                 'success': False,
-                'message': f'维护操作失败: {str(e)}'
+                'message': f'维护���作失败: {str(e)}'
             })
 
     def handle_vacuum_db(self):
@@ -883,6 +921,48 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({
                 'success': False,
                 'message': f'数据库重置失败: {str(e)}'
+            })
+
+    def handle_parse_html(self):
+        """Handle HTML file upload and parsing"""
+        try:
+            # Get content length
+            content_length = int(self.headers['Content-Length'])
+            
+            # Read the multipart form data
+            if content_length > 1024 * 1024:  # 1MB limit
+                raise ValueError("File too large")
+                
+            # Create a temporary file to store the uploaded data
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                # Read and write the file in chunks
+                remaining = content_length
+                while remaining:
+                    chunk_size = min(remaining, 8192)
+                    chunk = self.rfile.read(chunk_size)
+                    if not chunk:
+                        break
+                    tmp_file.write(chunk)
+                    remaining -= len(chunk)
+                    
+                # Reset file pointer
+                tmp_file.seek(0)
+                
+                # Read the file content
+                content = tmp_file.read().decode('gb2312', errors='ignore')
+                
+            # Parse the HTML content
+            surgery_data = parse_surgery_html(content)
+            
+            self.send_json({
+                'success': True,
+                'data': surgery_data
+            })
+            
+        except Exception as e:
+            self.send_json({
+                'success': False,
+                'message': str(e)
             })
 
 class ThreadedHTTPServer(ThreadingMixIn, socketserver.TCPServer):
