@@ -135,8 +135,8 @@ def parse_surgery_html(html_content):
         'age': 'Age',
         'patient_number': 'HospitalNumber',
         'diagnosis': 'Diagnosis',
-        'operation': 'Operation',
-        'surgeon': 'MainSurgeon',  # 经治医生 maps to 主刀
+        'operation': 'Operation',  # Keep original separator
+        'surgeon': 'MainSurgeon',
         'anesthesia': 'AnesthesiaType'
     }
     
@@ -149,6 +149,7 @@ def parse_surgery_html(html_content):
                 value = int(value.replace('岁', ''))
             except:
                 value = 0
+        # Remove the operation field special handling to preserve original separator
         mapped_data[sys_field] = value
         
     # Set 管床医生 same as 主刀
@@ -540,7 +541,7 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
             logging.error(f"Maintenance operation failed: {str(e)}")
             self.send_json({
                 'success': False,
-                'message': f'维护���作失败: {str(e)}'
+                'message': f'维护作失败: {str(e)}'
             })
 
     def handle_vacuum_db(self):

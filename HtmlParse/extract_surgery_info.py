@@ -65,6 +65,9 @@ class SurgeryInfoParser(HTMLParser):
                     self.found_anesthesia = True
 
     def handle_data(self, data):
+        # Ensure proper encoding of the input data
+        if isinstance(data, bytes):
+            data = data.decode('utf-8')
         data = data.strip()
         if not data:
             return
@@ -91,9 +94,13 @@ class SurgeryInfoParser(HTMLParser):
             self.data['patient_number'] = data
             self.found_number = False
             
-        # Handle operation
+        # Handle operation with explicit encoding handling
         if self.found_operation:
-            self.data['operation'] = data.strip()
+            # Ensure the + symbol is properly encoded
+            operation_data = data.strip()
+            if isinstance(operation_data, bytes):
+                operation_data = operation_data.decode('utf-8')
+            self.data['operation'] = operation_data
             self.found_operation = False
             
         # Handle anesthesia
