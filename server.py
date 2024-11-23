@@ -306,9 +306,12 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                 ))
                 
                 conn.commit()
+                
+                # 修改响应，添加 keepModalOpen 标志
                 self.send_json({
                     'success': True,
-                    'message': '手术安排添加成功'
+                    'message': '手术安排添加成功',
+                    'keepModalOpen': True  # 添加这个标志
                 })
         except Exception as e:
             self.send_json({
@@ -321,49 +324,56 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
         post_data = self.rfile.read(content_length).decode('utf-8')
         data = json.loads(post_data)
         
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
+        db_pool = DatabasePool()
         
         try:
-            # Check version before update
-            cursor.execute('SELECT UpdatedAt FROM SurgerySchedule WHERE ID=?', (data['ID'],))
-            result = cursor.fetchone()
-            if result and result[0] != data.get('lastUpdate'):
-                self.send_json({
-                    'success': False,
-                    'message': '该记录已被其他用户修改，请刷新后重试'
-                })
-                return
+            with db_pool.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # 首先检查记录是否存在以及最后更新时间
+                cursor.execute('SELECT UpdatedAt FROM SurgerySchedule WHERE ID=?', (data['ID'],))
+                result = cursor.fetchone()
+                
+                if not result:
+                    raise Exception('记录不存在')
+                    
+                current_update_time = result[0]
+                last_update_time = data.get('lastUpdate')
+                
+                if current_update_time != last_update_time:
+                    self.send_json({
+                        'success': False,
+                        'message': '该记录已被其他用户修改，请刷新后重试'
+                    })
+                    return
 
-            # Proceed with update
-            cursor.execute('''
-                UPDATE SurgerySchedule 
-                SET Date=?, BedNumber=?, PatientName=?, Gender=?, Age=?,
-                    HospitalNumber=?, Diagnosis=?, Operation=?, MainSurgeon=?,
-                    Assistant=?, AnesthesiaDoctor=?, AnesthesiaType=?,
-                    PreOpPrep=?, OperationOrder=?, Editor=?, UpdatedAt=CURRENT_TIMESTAMP
-                WHERE ID=?
-            ''', (
-                data['Date'], data['BedNumber'], data['PatientName'],
-                data['Gender'], data['Age'], data['HospitalNumber'],
-                data['Diagnosis'], data['Operation'], data['MainSurgeon'],
-                data['Assistant'], data['AnesthesiaDoctor'], data['AnesthesiaType'],
-                data.get('PreOpPrep', ''), data['OperationOrder'],
-                data.get('Editor', '系统用户'), data['ID']
-            ))
-            
-            conn.commit()
-            self.send_json({
-                'success': True,
-                'message': '手术安排已更新'
-            })
+                # 如果版本检查通过，执行更新
+                cursor.execute('''
+                    UPDATE SurgerySchedule 
+                    SET Date=?, BedNumber=?, PatientName=?, Gender=?, Age=?,
+                        HospitalNumber=?, Diagnosis=?, Operation=?, MainSurgeon=?,
+                        Assistant=?, AnesthesiaDoctor=?, AnesthesiaType=?,
+                        PreOpPrep=?, OperationOrder=?, Editor=?, UpdatedAt=CURRENT_TIMESTAMP
+                    WHERE ID=?
+                ''', (
+                    data['Date'], data['BedNumber'], data['PatientName'],
+                    data['Gender'], data['Age'], data['HospitalNumber'],
+                    data['Diagnosis'], data['Operation'], data['MainSurgeon'],
+                    data['Assistant'], data['AnesthesiaDoctor'], data['AnesthesiaType'],
+                    data.get('PreOpPrep', ''), data['OperationOrder'],
+                    data.get('Editor', '系统用户'), data['ID']
+                ))
+                
+                conn.commit()
+                self.send_json({
+                    'success': True,
+                    'message': '手术安排已更新'
+                })
         except Exception as e:
             self.send_json({
                 'success': False,
                 'message': str(e)
             })
-        finally:
-            conn.close()
 
     def handle_delete_surgery(self):
         content_length = int(self.headers['Content-Length'])

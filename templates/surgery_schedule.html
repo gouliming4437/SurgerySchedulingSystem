@@ -759,8 +759,10 @@ function showAddSurgery() {
 }
 
 function closeSurgeryModal() {
-    document.getElementById('surgeryModal').style.display = 'none';
-    document.getElementById('surgeryForm').reset();
+    if (confirm('确定要关闭窗口吗？')) {
+        document.getElementById('surgeryModal').style.display = 'none';
+        document.getElementById('surgeryForm').reset();
+    }
 }
 
 function editSurgery(id) {
@@ -774,6 +776,9 @@ function editSurgery(id) {
             if (data.success) {
                 const surgery = data.surgeries.find(s => s.ID === id);
                 if (surgery) {
+                    // 保存最后更新时间
+                    window.lastUpdateTime = surgery.UpdatedAt;  // 添加这行
+                    
                     document.getElementById('surgeryDate').value = surgery.Date;
                     document.getElementById('bedNumber').value = surgery.BedNumber;
                     document.getElementById('patientName').value = surgery.PatientName;
@@ -844,6 +849,7 @@ document.getElementById('surgeryForm').addEventListener('submit', function(e) {
 
     if (editingId) {
         formData.ID = editingId;
+        formData.lastUpdate = window.lastUpdateTime;  // 添加这行
     }
 
     const url = editingId ? '/api/surgery/edit' : '/api/surgery/add';
@@ -859,9 +865,20 @@ document.getElementById('surgeryForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             alert(editingId ? '手术安排已更新' : '手术安排已添加');
-            closeSurgeryModal();
+            document.getElementById('surgeryForm').reset();
+            document.getElementById('surgeryDate').value = currentDate.toISOString().split('T')[0];
             loadSurgeries();
+            
+            if (data.message === '该记录已被其他用户修改，请刷新后重试') {
+                // 如果是版本冲突，关闭模态窗口
+                document.getElementById('surgeryModal').style.display = 'none';
+            }
         } else {
+            if (data.message === '该记录已被其他用户修改，请刷新后重试') {
+                // 如果是版本冲突，关闭模态窗口并刷新数据
+                document.getElementById('surgeryModal').style.display = 'none';
+                loadSurgeries();
+            }
             alert(data.message || '操作失败');
         }
     })
