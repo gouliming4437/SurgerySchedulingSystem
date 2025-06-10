@@ -89,7 +89,8 @@ def init_db():
             Assistant TEXT NOT NULL,
             AnesthesiaDoctor TEXT NOT NULL,
             AnesthesiaType TEXT NOT NULL,
-            PreOpPrep TEXT,
+            PreOpNeedle TEXT,
+            FrozenSection TEXT DEFAULT '否',
             OperationOrder INTEGER NOT NULL,
             Creator TEXT NOT NULL,
             Editor TEXT NOT NULL,
@@ -293,25 +294,25 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                     INSERT INTO SurgerySchedule (
                         Department, Date, BedNumber, PatientName, Gender, Age,
                         HospitalNumber, Diagnosis, Operation, MainSurgeon,
-                        Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
-                        OperationOrder, Creator, Editor
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpNeedle,
+                        FrozenSection, OperationOrder, Creator, Editor
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     data['Department'], data['Date'], data['BedNumber'],
                     data['PatientName'], data['Gender'], data['Age'],
                     data['HospitalNumber'], data['Diagnosis'], data['Operation'],
                     data['MainSurgeon'], data['Assistant'], data['AnesthesiaDoctor'],
-                    data['AnesthesiaType'], data.get('PreOpPrep', ''),
-                    data['OperationOrder'], data['Creator'], data['Creator']
+                    data['AnesthesiaType'], data.get('PreOpNeedle', ''),
+                    data.get('FrozenSection', '否'), data['OperationOrder'],
+                    data['Creator'], data['Creator']
                 ))
                 
                 conn.commit()
                 
-                # 修改响应，添加 keepModalOpen 标志
                 self.send_json({
                     'success': True,
                     'message': '手术安排添加成功',
-                    'keepModalOpen': True  # 添加这个标志
+                    'keepModalOpen': True
                 })
         except Exception as e:
             self.send_json({
@@ -353,15 +354,15 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                     SET Date=?, BedNumber=?, PatientName=?, Gender=?, Age=?,
                         HospitalNumber=?, Diagnosis=?, Operation=?, MainSurgeon=?,
                         Assistant=?, AnesthesiaDoctor=?, AnesthesiaType=?,
-                        PreOpPrep=?, OperationOrder=?, Editor=?, UpdatedAt=CURRENT_TIMESTAMP
+                        PreOpNeedle=?, FrozenSection=?, OperationOrder=?, Editor=?, UpdatedAt=CURRENT_TIMESTAMP
                     WHERE ID=?
                 ''', (
                     data['Date'], data['BedNumber'], data['PatientName'],
                     data['Gender'], data['Age'], data['HospitalNumber'],
                     data['Diagnosis'], data['Operation'], data['MainSurgeon'],
                     data['Assistant'], data['AnesthesiaDoctor'], data['AnesthesiaType'],
-                    data.get('PreOpPrep', ''), data['OperationOrder'],
-                    data.get('Editor', '系统用户'), data['ID']
+                    data.get('PreOpNeedle', ''), data.get('FrozenSection', '否'),
+                    data['OperationOrder'], data.get('Editor', '系统用户'), data['ID']
                 ))
                 
                 conn.commit()
@@ -413,8 +414,8 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                     query = '''
                         SELECT Date, Department, BedNumber, PatientName, Gender, Age,
                                HospitalNumber, Diagnosis, Operation, MainSurgeon,
-                               Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
-                               OperationOrder
+                               Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpNeedle,
+                               FrozenSection, OperationOrder
                         FROM SurgerySchedule
                         WHERE Date BETWEEN ? AND ?
                         ORDER BY Date, Department, OperationOrder
@@ -425,8 +426,8 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                     query = '''
                         SELECT Date, Department, BedNumber, PatientName, Gender, Age,
                                HospitalNumber, Diagnosis, Operation, MainSurgeon,
-                               Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpPrep,
-                               OperationOrder
+                               Assistant, AnesthesiaDoctor, AnesthesiaType, PreOpNeedle,
+                               FrozenSection, OperationOrder
                         FROM SurgerySchedule
                         WHERE Department = ?
                         AND Date BETWEEN ? AND ?
@@ -440,7 +441,7 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                 writer = csv.writer(output)
                 writer.writerow(['日期', '病区', '床号', '姓名', '性别', '年龄',
                                '住院号', '临床诊断', '术式', '主刀',
-                               '助手', '管床医师', '麻醉', '术前准备', '台次'])
+                               '助手', '管床医师', '麻醉', '术前针', '术中冰冻', '台次'])
                 writer.writerows(rows)
                 
                 self.send_response(200)
@@ -597,7 +598,8 @@ class SurgeryHandler(http.server.SimpleHTTPRequestHandler):
                     Assistant TEXT NOT NULL,
                     AnesthesiaDoctor TEXT NOT NULL,
                     AnesthesiaType TEXT NOT NULL,
-                    PreOpPrep TEXT,
+                    PreOpNeedle TEXT,
+                    FrozenSection TEXT DEFAULT '否',
                     OperationOrder INTEGER NOT NULL,
                     Creator TEXT NOT NULL,
                     Editor TEXT NOT NULL,

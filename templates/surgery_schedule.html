@@ -112,156 +112,154 @@
         }
 
         @media print {
-    @page {
-        size: landscape;
-        margin: 1cm;
-    }
+            @page {
+                size: landscape;
+                margin: 1cm;
+            }
 
-    /* Hide all elements initially */
-    body * {
-        display: none;
-    }
+            /* Hide all elements initially */
+            body * {
+                display: none;
+            }
 
-    /* Show only what we want to print */
-    .print-content,
-    .print-content *,
-    .surgery-table,
-    .surgery-table *,
-    .title,
-    h1,
-    .summary {
-        display: block !important;
-    }
+            /* Show only what we want to print */
+            .print-content,
+            .print-content *,
+            .surgery-table,
+            .surgery-table *,
+            .title,
+            h1,
+            .summary {
+                display: block !important;
+            }
 
-    /* Table cells should be table-cell */
-    .surgery-table td,
-    .surgery-table th {
-        display: table-cell !important;
-    }
+            /* Table cells should be table-cell */
+            .surgery-table td,
+            .surgery-table th {
+                display: table-cell !important;
+            }
 
-    /* Table rows should be table-row */
-    .surgery-table tr {
-        display: table-row !important;
-    }
+            /* Table rows should be table-row */
+            .surgery-table tr {
+                display: table-row !important;
+            }
 
-    /* Table sections should be table-row-group */
-    .surgery-table thead,
-    .surgery-table tbody,
-    .surgery-table tfoot {
-        display: table-row-group !important;
-    }
+            /* Table sections should be table-row-group */
+            .surgery-table thead,
+            .surgery-table tbody,
+            .surgery-table tfoot {
+                display: table-row-group !important;
+            }
 
-    /* The table itself should be table */
-    .surgery-table {
-        display: table !important;
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
+            /* The table itself should be table */
+            .surgery-table {
+                display: table !important;
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
 
-    /* Style the title */
-    h1 {
-        text-align: center;
-        font-size: 18pt;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
+            /* Style the title */
+            h1 {
+                text-align: center;
+                font-size: 18pt;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
 
-    /* Style the summary */
-    .summary {
-        text-align: left;
-        font-size: 10pt;
-        margin: 20px 0;
-    }
+            /* Style the summary */
+            .summary {
+                text-align: left;
+                font-size: 10pt;
+                margin: 20px 0;
+            }
 
-    /* Style table cells */
-    .surgery-table th,
-    .surgery-table td {
-        border: 1px solid black;
-        padding: 4px;
-        text-align: center;
-        font-size: 10pt;
-    }
+            /* Style table cells */
+            .surgery-table th,
+            .surgery-table td {
+                border: 1px solid black;
+                padding: 4px;
+                text-align: center;
+                font-size: 10pt;
+            }
 
-    /* Hide specific elements */
-    .no-print,
-    .button-group,
-    .header,
-    .department-selection,
-    .date-navigation,
-    .modal {
-        display: none !important;
-    }
-}
-
-/* Add or update these styles in the style section */
-.form-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
-    gap: 15px;
-    padding: 20px;
-}
-
-.form-group {
-    margin: 5px 0;
-    display: flex;
-    align-items: center;
-}
-
-.form-group label {
-    width: 80px;
-    text-align: right;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-.form-group input,
-.form-group select {
-    flex: 1;
-    padding: 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: calc(100% - 90px); /* Adjust input width */
-}
-
-.button-group {
-    grid-column: 1 / -1; /* Span all columns */
-    text-align: center;
-    margin-top: 20px;
-}
-
-.modal-content {
-    width: 90%;
-    max-width: 1000px; /* Increased max-width to accommodate horizontal layout */
-}
-
-/* Add this to the existing print styles in the <style> section */
-<style>
-    @media print {
-        /* Hide edit/delete buttons when printing */
-        .no-print,
-        .edit-btn,
-        .delete-btn {
-            display: none !important;
-        }
-        
-        /* Hide the operations column entirely when printing */
-        .surgery-table td:last-child,
-        .surgery-table th:last-child {
-            display: none !important;
+            /* Hide specific elements */
+            .no-print,
+            .button-group,
+            .header,
+            .department-selection,
+            .date-navigation,
+            .modal {
+                display: none !important;
+            }
         }
 
-        /* Hide the operations column and buttons when printing */
-        .operations-column {
-            display: none !important;
+        /* Add or update these styles in the style section */
+        .form-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Creates 3 columns */
+            gap: 15px;
+            padding: 20px;
         }
-        
-        .edit-btn, 
-        .delete-btn {
-            display: none !important;
+
+        .form-group {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
         }
-    }
-</style>
+
+        .form-group label {
+            width: 80px;
+            text-align: right;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .form-group input,
+        .form-group select {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: calc(100% - 90px); /* Adjust input width */
+        }
+
+        .button-group {
+            grid-column: 1 / -1; /* Span all columns */
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 1000px; /* Increased max-width to accommodate horizontal layout */
+        }
+
+        /* Add this to the existing print styles in the <style> section */
+        @media print {
+            /* Hide edit/delete buttons when printing */
+            .no-print,
+            .edit-btn,
+            .delete-btn {
+                display: none !important;
+            }
+            
+            /* Hide the operations column entirely when printing */
+            .surgery-table td:last-child,
+            .surgery-table th:last-child {
+                display: none !important;
+            }
+
+            /* Hide the operations column and buttons when printing */
+            .operations-column {
+                display: none !important;
+            }
+            
+            .edit-btn, 
+            .delete-btn {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -322,7 +320,8 @@
                             <th>助手</th>
                             <th>管床医师</th>
                             <th>麻醉</th>
-                            <th>术前准备</th>
+                            <th>术前针</th>
+                            <th>术中冰冻</th>
                             <th>台次</th>
                             <th>科室</th>
                         </tr>
@@ -355,7 +354,8 @@
                                 <th>助手</th>
                                 <th>管床医师</th>
                                 <th>麻醉</th>
-                                <th>术前准备</th>
+                                <th>术前针</th>
+                                <th>术中冰冻</th>
                                 <th>台次</th>
                             </tr>
                         </thead>
@@ -381,7 +381,8 @@
                                 <th>助手</th>
                                 <th>管床医师</th>
                                 <th>麻醉</th>
-                                <th>术前准备</th>
+                                <th>术前针</th>
+                                <th>术中冰冻</th>
                                 <th>台次</th>
                             </tr>
                         </thead>
@@ -454,10 +455,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>术前准备：</label>
-                            <select id="preOpPrep">
+                            <label for="preOpNeedle">术前针:</label>
+                            <select id="preOpNeedle">
                                 <option value="无">无</option>
                                 <option value="有">有</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="frozenSection">术中冰冻:</label>
+                            <select id="frozenSection">
+                                <option value="否">否</option>
+                                <option value="是">是</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -650,7 +658,8 @@
                     <td style="width: 6%;">${surgery.Assistant}</td>
                     <td style="width: 6%;">${surgery.AnesthesiaDoctor}</td>
                     <td style="width: 6%;">${surgery.AnesthesiaType}</td>
-                    <td style="width: 5%;">${surgery.PreOpPrep || '无'}</td>
+                    <td style="width: 5%;">${surgery.PreOpNeedle || '无'}</td>
+                    <td style="width: 5%;">${surgery.FrozenSection || '否'}</td>
                     <td style="width: 5%;">${surgery.OperationOrder}</td>
                     ${isAnesthesiaDept ? `<td>${surgery.Department}</td>` : ''}
                     ${!isAnesthesiaDept ? `
@@ -791,7 +800,8 @@ function editSurgery(id) {
                     document.getElementById('assistant').value = surgery.Assistant;
                     document.getElementById('wardDoctor').value = surgery.AnesthesiaDoctor;
                     document.getElementById('anesthesia').value = surgery.AnesthesiaType;
-                    document.getElementById('preOpPrep').value = surgery.PreOpPrep || '无';
+                    document.getElementById('preOpNeedle').value = surgery.PreOpNeedle || '无';
+                    document.getElementById('frozenSection').value = surgery.FrozenSection || '否';
                     document.getElementById('operationOrder').value = surgery.OperationOrder;
                     document.getElementById('surgeryModal').style.display = 'block';
                 }
@@ -842,7 +852,8 @@ document.getElementById('surgeryForm').addEventListener('submit', function(e) {
         Assistant: document.getElementById('assistant').value,
         AnesthesiaDoctor: document.getElementById('wardDoctor').value,
         AnesthesiaType: document.getElementById('anesthesia').value,
-        PreOpPrep: document.getElementById('preOpPrep').value,
+        PreOpNeedle: document.getElementById('preOpNeedle').value,
+        FrozenSection: document.getElementById('frozenSection').value,
         OperationOrder: document.getElementById('operationOrder').value,
         Creator: '系统用户'
     };
@@ -1026,7 +1037,7 @@ function logout() {
 }
 
 // Add this function to update the table header
-function updateTableHeader(isAnesthesiaDept) {
+function updateTableHeader() {
     const thead = document.querySelector('.surgery-table thead tr');
     thead.innerHTML = `
         <th>床号</th>
@@ -1040,10 +1051,10 @@ function updateTableHeader(isAnesthesiaDept) {
         <th>助手</th>
         <th>管床医师</th>
         <th>麻醉</th>
-        <th>术准备</th>
+        <th>术前针</th>
+        <th>术中冰冻</th>
         <th>台次</th>
-        ${isAnesthesiaDept ? '<th>科室</th>' : ''}
-        <th class="no-print">操作</th>
+        <th class="no-print">科室</th>
     `;
 }
 
@@ -1056,7 +1067,7 @@ function selectViewMode(mode) {
         // Show combined view
         document.getElementById('separateView').style.display = 'none';
         document.getElementById('combinedTable').style.display = 'block';
-        updateTableHeader(true);
+        updateTableHeader();
         loadSurgeries();
     } else {
         // Show separate view
@@ -1115,7 +1126,8 @@ function displayDepartmentSurgeries(tableId, department, surgeries) {
             <td>${surgery.Assistant}</td>
             <td>${surgery.AnesthesiaDoctor}</td>
             <td>${surgery.AnesthesiaType}</td>
-            <td>${surgery.PreOpPrep || '无'}</td>
+            <td>${surgery.PreOpNeedle || '无'}</td>
+            <td>${surgery.FrozenSection || '否'}</td>
             <td>${surgery.OperationOrder}</td>
         `;
         tbody.appendChild(tr);
@@ -1223,7 +1235,8 @@ function printTable(wardId) {
                             <th>助手</th>
                             <th>管床医师</th>
                             <th>麻醉</th>
-                            <th>术前准备</th>
+                            <th>术前针</th>
+                            <th>术中冰冻</th>
                             <th>台次</th>
                         </tr>
                     </thead>
@@ -1322,7 +1335,8 @@ function printCombinedTable() {
                             <th>助手</th>
                             <th>管床医师</th>
                             <th>麻醉</th>
-                            <th>术前准备</th>
+                            <th>术前针</th>
+                            <th>术中冰冻</th>
                             <th>台次</th>
                             <th>科室</th>
                         </tr>
@@ -1358,8 +1372,6 @@ function updateSurgeryTable(data) {
 function printDepartmentTable() {
     const printWindow = window.open('', '_blank');
     const dateStr = currentDate.toISOString().split('T')[0];
-    
-    // Get the surgery data
     const surgeries = Array.from(document.getElementById('surgeryTableBody').getElementsByTagName('tr')).map(row => {
         const cells = row.getElementsByTagName('td');
         return {
@@ -1374,15 +1386,12 @@ function printDepartmentTable() {
             assistant: cells[8].textContent,
             doctor: cells[9].textContent,
             anesthesia: cells[10].textContent,
-            prep: cells[11].textContent,
-            order: cells[12].textContent
+            preOpNeedle: cells[11].textContent,
+            frozenSection: cells[12].textContent,
+            operationOrder: cells[13].textContent
         };
     });
-
-    // Get the summary text
     const summaryText = document.getElementById('surgeryTableSummary').textContent;
-    
-    // Create the print content
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -1401,8 +1410,8 @@ function printDepartmentTable() {
                     margin: 1cm;
                 }
                 html, body {
-                    width: 297mm; /* A4 landscape width */
-                    height: 210mm; /* A4 landscape height */
+                    width: 297mm;
+                    height: 210mm;
                     margin: 0;
                     padding: 20px;
                 }
@@ -1454,7 +1463,8 @@ function printDepartmentTable() {
                         <th style="width: 6%;">助手</th>
                         <th style="width: 6%;">管床医师</th>
                         <th style="width: 6%;">麻醉</th>
-                        <th style="width: 5%;">术前准备</th>
+                        <th style="width: 5%;">术前针</th>
+                        <th style="width: 5%;">术中冰冻</th>
                         <th style="width: 5%;">台次</th>
                     </tr>
                 </thead>
@@ -1472,8 +1482,9 @@ function printDepartmentTable() {
                             <td>${surgery.assistant}</td>
                             <td>${surgery.doctor}</td>
                             <td>${surgery.anesthesia}</td>
-                            <td>${surgery.prep}</td>
-                            <td>${surgery.order}</td>
+                            <td>${surgery.preOpNeedle}</td>
+                            <td>${surgery.frozenSection}</td>
+                            <td>${surgery.operationOrder}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -1482,10 +1493,7 @@ function printDepartmentTable() {
         </body>
         </html>
     `);
-    
     printWindow.document.close();
-    
-    // Wait for content to load
     setTimeout(() => {
         printWindow.focus();
         printWindow.print();
