@@ -303,7 +303,7 @@
                 </div>
                 <div class="button-group">
                     <button class="button" onclick="showHistoryModal()">历史记录</button>
-                    <button class="button" onclick="exportAnesthesiaData()">数据</button>
+                    <button class="button" onclick="exportAnesthesiaData()">导出数据</button>
                     <button class="button" onclick="printCombinedTable()">打印合并表</button>
                 </div>
                 <table class="surgery-table">
@@ -323,7 +323,7 @@
                             <th>术前针</th>
                             <th>术中冰冻</th>
                             <th>台次</th>
-                            <th>科室</th>
+                            <th class="no-print">科室</th>
                         </tr>
                     </thead>
                     <tbody id="surgeryTableBody"></tbody>
@@ -1039,6 +1039,7 @@ function logout() {
 // Add this function to update the table header
 function updateTableHeader() {
     const thead = document.querySelector('.surgery-table thead tr');
+    const isAnesthesiaDept = currentDepartment === '手术麻醉科';
     thead.innerHTML = `
         <th>床号</th>
         <th>姓名</th>
@@ -1054,7 +1055,7 @@ function updateTableHeader() {
         <th>术前针</th>
         <th>术中冰冻</th>
         <th>台次</th>
-        <th class="no-print">科室</th>
+        ${isAnesthesiaDept ? '<th>科室</th>' : '<th class="no-print">操作</th>'}
     `;
 }
 
